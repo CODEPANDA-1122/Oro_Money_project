@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini URL Shortener</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 0; }
+    .container { max-width: 400px; margin: 60px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 32px 24px; }
+    h1 { text-align: center; color: #333; }
+    input[type="url"] { width: 100%; padding: 10px; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 16px; }
+    button { width: 100%; padding: 10px; font-size: 1rem; background: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: background 0.2s; }
+    button:hover { background: #0056b3; }
+    .result, .error { margin-top: 18px; text-align: center; }
+    .result a { color: #007bff; text-decoration: none; font-weight: bold; }
+    .copy-btn { margin-left: 8px; padding: 2px 8px; font-size: 0.9rem; border: none; border-radius: 3px; background: #eee; cursor: pointer; }
+    .copy-btn:active { background: #ccc; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Mini URL Shortener</h1>
+    <form id="shorten-form">
+      <input type="url" id="url-input" placeholder="Paste your long URL here..." required />
+      <button type="submit">Shorten URL</button>
+    </form>
+    <div class="result" id="result" style="display:none;"></div>
+    <div class="error" id="error" style="color:#c00; display:none;"></div>
+  </div>
+  <script>
+    const form = document.getElementById('shorten-form');
+    const urlInput = document.getElementById('url-input');
+    const resultDiv = document.getElementById('result');
+    const errorDiv = document.getElementById('error');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      resultDiv.style.display = 'none';
+      errorDiv.style.display = 'none';
+      const url = urlInput.value.trim();
+      if (!url) return;
+      try {
+        const res = await fetch('/shorten', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+        const data = await res.json();
+        if (res.ok && data.shortUrl) {
+          resultDiv.innerHTML = `<a href="${data.shortUrl}" target="_blank">${data.shortUrl}</a> <button class='copy-btn' onclick='navigator.clipboard.writeText("${data.shortUrl}")'>Copy</button>`;
+          resultDiv.style.display = 'block';
+        } else {
+          errorDiv.textContent = data.error || 'Something went wrong.';
+          errorDiv.style.display = 'block';
+        }
+      } catch (err) {
+        errorDiv.textContent = 'Network error.';
+        errorDiv.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html> 
